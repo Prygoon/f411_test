@@ -65,10 +65,6 @@ void Error_Handler(void);
 #define IR_EXTI_Pin GPIO_PIN_8
 #define IR_EXTI_GPIO_Port GPIOA
 #define IR_EXTI_EXTI_IRQn EXTI9_5_IRQn
-#define BT_TX_Pin GPIO_PIN_9
-#define BT_TX_GPIO_Port GPIOA
-#define BT_RX_Pin GPIO_PIN_10
-#define BT_RX_GPIO_Port GPIOA
 #define LCD_SCL_Pin GPIO_PIN_6
 #define LCD_SCL_GPIO_Port GPIOB
 #define LCD_SDA_Pin GPIO_PIN_7
