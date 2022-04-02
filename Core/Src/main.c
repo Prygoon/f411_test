@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "usbd_cdc_if.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,7 +88,7 @@ int main(void) {
     MX_I2C1_Init();
     MX_USB_DEVICE_Init();
     /* USER CODE BEGIN 2 */
-
+    char tx_string[28];
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -96,7 +96,10 @@ int main(void) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
     while (1) {
-
+        uint32_t millis = HAL_GetTick();
+        sprintf(tx_string, "Hello from USB! %lu\n\r", millis);
+        CDC_Transmit_FS((uint8_t *) tx_string, strlen(tx_string));
+        HAL_Delay(999);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
