@@ -53,7 +53,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void CDC_USB_Receive_Callback(unsigned char *data, size_t len);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

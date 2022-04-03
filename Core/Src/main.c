@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "i2c.h"
 #include "usb_device.h"
 #include "gpio.h"
@@ -44,11 +45,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+char rx_data[64];
+char check_str[1] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -86,20 +90,28 @@ int main(void) {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_I2C1_Init();
-    MX_USB_DEVICE_Init();
     /* USER CODE BEGIN 2 */
     char tx_string[28];
     /* USER CODE END 2 */
 
+    /* Init scheduler */
+    osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+    MX_FREERTOS_Init();
+
+    /* Start scheduler */
+    osKernelStart();
+
+    /* We should never get here as control is now taken by the scheduler */
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
     while (1) {
-        uint32_t millis = HAL_GetTick();
-        sprintf(tx_string, "Hello from USB! %lu\n\r", millis);
-        CDC_Transmit_FS((uint8_t *) tx_string, strlen(tx_string));
-        HAL_Delay(999);
+//        uint32_t millis = HAL_GetTick();
+//        sprintf(tx_string, "Hello from USB! %lu\n\r", millis);
+
+//        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//        HAL_Delay(999);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -151,8 +163,40 @@ void SystemClock_Config(void) {
 }
 
 /* USER CODE BEGIN 4 */
+void CDC_USB_Receive_Callback(unsigned char *data, size_t len) {
+//    char received_data[len];
+
+//    if (memcmp(rx_data, check_str, 1) != 0) {
+    CDC_Transmit_FS((uint8_t *) data, len);
+//        memcpy(rx_data, check_str, 1);
+
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//    }
+//    memcpy(rx_data, data, len);
+//    memset(rx_data + len, 0, 1);
+}
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM11 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    /* USER CODE BEGIN Callback 0 */
+
+    /* USER CODE END Callback 0 */
+    if (htim->Instance == TIM11) {
+        HAL_IncTick();
+    }
+    /* USER CODE BEGIN Callback 1 */
+
+    /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
