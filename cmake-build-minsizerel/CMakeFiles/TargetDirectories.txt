@@ -1,3 +1,0 @@
-/home/prygoon/CLionProjects/f411_test/cmake-build-minsizerel/CMakeFiles/rebuild_cache.dir
-/home/prygoon/CLionProjects/f411_test/cmake-build-minsizerel/CMakeFiles/edit_cache.dir
-/home/prygoon/CLionProjects/f411_test/cmake-build-minsizerel/CMakeFiles/f411_test.elf.dir
