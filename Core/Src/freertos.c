@@ -19,13 +19,12 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
-#include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "usbd_cdc_if.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -74,7 +73,7 @@ const osMessageQueueAttr_t usbReceiveQueue_attributes = {
 
 void StartDefaultTask(void *argument);
 
-void StartTask02(void *argument);
+void StartUsbTask(void *argument);
 
 extern void MX_USB_DEVICE_Init(void);
 
@@ -104,7 +103,7 @@ void MX_FREERTOS_Init(void) {
 
     /* Create the queue(s) */
     /* creation of usbReceiveQueue */
-    usbReceiveQueueHandle = osMessageQueueNew(64, sizeof(uint16_t), &usbReceiveQueue_attributes);
+    usbReceiveQueueHandle = osMessageQueueNew(320, sizeof(uint32_t), &usbReceiveQueue_attributes);
 
     /* USER CODE BEGIN RTOS_QUEUES */
     /* add queues, ... */
@@ -115,7 +114,7 @@ void MX_FREERTOS_Init(void) {
     defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
     /* creation of usbTask */
-    usbTaskHandle = osThreadNew(StartTask02, NULL, &usbTask_attributes);
+    usbTaskHandle = osThreadNew(StartUsbTask, NULL, &usbTask_attributes);
 
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
@@ -138,27 +137,43 @@ void StartDefaultTask(void *argument) {
     /* init code for USB_DEVICE */
     MX_USB_DEVICE_Init();
     /* USER CODE BEGIN StartDefaultTask */
+    const char *tx_data = "LED_toggled\n";
     /* Infinite loop */
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
     for (;;) {
-        osDelay(1);
+        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+        CDC_Transmit_FS((uint8_t *) tx_data, strlen(tx_data));
+        osDelay(1000);
     }
+#pragma clang diagnostic pop
     /* USER CODE END StartDefaultTask */
 }
 
-/* USER CODE BEGIN Header_StartTask02 */
+/* USER CODE BEGIN Header_StartUsbTask */
 /**
 * @brief Function implementing the usbTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask02 */
-void StartTask02(void *argument) {
-    /* USER CODE BEGIN StartTask02 */
+/* USER CODE END Header_StartUsbTask */
+void StartUsbTask(void *argument) {
+    /* USER CODE BEGIN StartUsbTask */
+    char rx_data[64];
     /* Infinite loop */
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
     for (;;) {
+
+        if (osMessageQueueGetCount(usbReceiveQueueHandle) > 0) {
+            osMessageQueueGet(usbReceiveQueueHandle, &rx_data, 0, 0);
+            CDC_Transmit_FS((uint8_t *) rx_data, strlen(rx_data));
+        }
         osDelay(1);
+
     }
-    /* USER CODE END StartTask02 */
+#pragma clang diagnostic pop
+    /* USER CODE END StartUsbTask */
 }
 
 /* Private application code --------------------------------------------------*/

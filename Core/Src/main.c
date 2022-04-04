@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "usbd_cdc_if.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,8 +45,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-char rx_data[64];
-char check_str[1] = {0};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -107,11 +106,6 @@ int main(void) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
     while (1) {
-//        uint32_t millis = HAL_GetTick();
-//        sprintf(tx_string, "Hello from USB! %lu\n\r", millis);
-
-//        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-//        HAL_Delay(999);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -163,18 +157,6 @@ void SystemClock_Config(void) {
 }
 
 /* USER CODE BEGIN 4 */
-void CDC_USB_Receive_Callback(unsigned char *data, size_t len) {
-//    char received_data[len];
-
-//    if (memcmp(rx_data, check_str, 1) != 0) {
-    CDC_Transmit_FS((uint8_t *) data, len);
-//        memcpy(rx_data, check_str, 1);
-
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-//    }
-//    memcpy(rx_data, data, len);
-//    memset(rx_data + len, 0, 1);
-}
 
 /* USER CODE END 4 */
 
