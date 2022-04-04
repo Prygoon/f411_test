@@ -20,7 +20,6 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "i2c.h"
-#include "usb_device.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -90,7 +89,7 @@ int main(void) {
     MX_GPIO_Init();
     MX_I2C1_Init();
     /* USER CODE BEGIN 2 */
-    char tx_string[28];
+
     /* USER CODE END 2 */
 
     /* Init scheduler */
