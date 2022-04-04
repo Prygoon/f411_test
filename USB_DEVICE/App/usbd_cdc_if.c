@@ -21,8 +21,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc_if.h"
 
-/* USER CODE BEGIN INCLUDE */
 
+/* USER CODE BEGIN INCLUDE */
+#include "cmsis_os2.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,6 +63,7 @@
   */
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
+#define HL_RX_BUFFER_SIZE 256 // Can be larger if desired
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -94,7 +96,11 @@ uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
+extern osMessageQueueId_t usbReceiveQueueHandle;
 
+volatile uint8_t rxBuffer[HL_RX_BUFFER_SIZE]; // Receive buffer
+volatile uint16_t rxBufferHeadPos = 0; // Receive buffer write position
+volatile uint16_t rxBufferTailPos = 0; // Receive buffer read position
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -260,12 +266,27 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t *pbuf, uint16_t length) {
   */
 static int8_t CDC_Receive_FS(uint8_t *Buf, uint32_t *Len) {
     /* USER CODE BEGIN 6 */
-    size_t len = (size_t) *Len;
-    CDC_USB_Receive_Callback(Buf, len);
-
     USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+
+    size_t len = (size_t) *Len;
+    uint16_t tempHeadPos = rxBufferHeadPos; // Increment temp head pos while writing, then update main variable when complete
+
+    for (uint32_t i = 0; i < len; i++) {
+        rxBuffer[tempHeadPos] = Buf[i];
+        osMessageQueuePut(usbReceiveQueueHandle, (const void *) &rxBuffer[tempHeadPos], 0, 0);
+        tempHeadPos = (uint16_t) ((uint16_t) (tempHeadPos + 1) % HL_RX_BUFFER_SIZE);
+        if (tempHeadPos == rxBufferTailPos) {
+            return USBD_FAIL;
+        }
+    }
+    CDC_FlushRxBuffer_FS();
+    tempHeadPos = 0;
+
+    rxBufferHeadPos = tempHeadPos;
     USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+
     return (USBD_OK);
+
     /* USER CODE END 6 */
 }
 
@@ -316,7 +337,14 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum) {
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+void CDC_FlushRxBuffer_FS() {
+    for (int i = 0; i < HL_RX_BUFFER_SIZE; i++) {
+        rxBuffer[i] = 0;
+    }
 
+    rxBufferHeadPos = 0;
+    rxBufferTailPos = 0;
+}
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
 /**
